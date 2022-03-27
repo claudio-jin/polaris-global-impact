@@ -1,0 +1,147 @@
+CREATE TABLE t_fdr_carrinho (
+    cd_carrinho     NUMBER(3) NOT NULL,
+    cd_instituicao  NUMBER(5) NOT NULL
+);
+
+ALTER TABLE t_fdr_carrinho ADD CONSTRAINT pk_fdr_carrinho PRIMARY KEY ( cd_carrinho );
+
+CREATE TABLE t_fdr_endereco (
+    nr_cep          NUMBER(8) NOT NULL,
+    sg_estado       CHAR(2) NOT NULL,
+    nm_cidade       VARCHAR2(30) NOT NULL,
+    nm_logradouro   VARCHAR2(50) NOT NULL,
+    nr_logradouro   NUMBER NOT NULL,
+    nm_bairro       VARCHAR2(30) NOT NULL,
+    ds_complemento  VARCHAR2(300) NOT NULL
+);
+
+ALTER TABLE t_fdr_endereco ADD CONSTRAINT pk_fdr_endereco PRIMARY KEY ( nr_cep );
+
+CREATE TABLE t_fdr_entidade (
+    cd_instituicao  NUMBER(5) NOT NULL,
+    nr_cep          NUMBER(8) NOT NULL,
+    nm_instituicao  VARCHAR2(50) NOT NULL,
+    nr_telefone     NUMBER(11) NOT NULL,
+    ds_email        VARCHAR2(50) NOT NULL
+);
+
+ALTER TABLE t_fdr_entidade ADD CONSTRAINT pk_fdr_entidade PRIMARY KEY ( cd_instituicao );
+
+ALTER TABLE t_fdr_entidade ADD CONSTRAINT un_fdr_entidade_email UNIQUE ( ds_email );
+
+CREATE TABLE t_fdr_item_sm (
+    cd_produto      NUMBER(4) NOT NULL,
+    cd_carrinho     NUMBER(3) NOT NULL,
+    st_confirmacao  NUMBER(1) NOT NULL
+);
+
+COMMENT ON COLUMN t_fdr_item_sm.st_confirmacao IS
+    '1 sim 0 nao';
+
+ALTER TABLE t_fdr_item_sm
+    ADD CONSTRAINT ck_fdr_item_car CHECK ( st_confirmacao = 1
+                                           OR st_confirmacao = 0 );
+
+ALTER TABLE t_fdr_item_sm ADD CONSTRAINT pk_fdr_item_car PRIMARY KEY ( cd_produto,
+                                                                       cd_carrinho );
+
+CREATE TABLE t_fdr_prod_sm (
+    cd_produto          NUMBER(4) NOT NULL,
+    cd_supermercado     NUMBER(5) NOT NULL,
+    st_disponibilidade  NUMBER(1) NOT NULL
+);
+
+COMMENT ON COLUMN t_fdr_prod_sm.st_disponibilidade IS
+    '1 sim 0 nao';
+
+ALTER TABLE t_fdr_prod_sm
+    ADD CONSTRAINT ck_fdr_prod_sm CHECK ( st_disponibilidade = 1
+                                          OR st_disponibilidade = 0 );
+
+ALTER TABLE t_fdr_prod_sm ADD CONSTRAINT pk_fdr_prod_sm PRIMARY KEY ( cd_supermercado,
+                                                                      cd_produto );
+
+CREATE TABLE t_fdr_produto (
+    cd_produto      NUMBER(4) NOT NULL,
+    nm_produto      VARCHAR2(30) NOT NULL,
+    qt_produto      NUMBER NOT NULL,
+    dt_fabricacao   DATE NOT NULL,
+    dt_validade     DATE NOT NULL
+);
+
+ALTER TABLE t_fdr_produto ADD CONSTRAINT pk_fdr_produtos PRIMARY KEY ( cd_produto );
+
+CREATE TABLE t_fdr_repre_ea (
+    cd_representante  NUMBER(2) NOT NULL,
+    cd_instituicao    NUMBER(5) NOT NULL,
+    nm_representante  VARCHAR2(30) NOT NULL,
+    nr_telefone       NUMBER NOT NULL,
+    ds_email          VARCHAR2(50) NOT NULL
+);
+
+ALTER TABLE t_fdr_repre_ea ADD CONSTRAINT pk_fdr_repre_ea PRIMARY KEY ( cd_representante );
+
+ALTER TABLE t_fdr_repre_ea ADD CONSTRAINT un_fdr_repre_ea_email UNIQUE ( ds_email );
+
+CREATE TABLE t_fdr_repre_sm (
+    cd_representante  NUMBER(2) NOT NULL,
+    cd_supermercado   NUMBER(5) NOT NULL,
+    nm_representante  VARCHAR2(30) NOT NULL,
+    nr_telefone       NUMBER(8) NOT NULL,
+    ds_email          VARCHAR2(50) NOT NULL
+);
+
+ALTER TABLE t_fdr_repre_sm ADD CONSTRAINT pk_fdr_repre_sm PRIMARY KEY ( cd_representante );
+
+ALTER TABLE t_fdr_repre_sm ADD CONSTRAINT un_fdr_repre_sm_email UNIQUE ( ds_email );
+
+CREATE TABLE t_fdr_supermercado (
+    cd_supermercado  NUMBER(5) NOT NULL,
+    nr_cep           NUMBER(8) NOT NULL,
+    nm_supermercado  VARCHAR2(50) NOT NULL,
+    nr_telefone      NUMBER(11) NOT NULL,
+    ds_email         VARCHAR2(50) NOT NULL,
+    nr_cnpj          NUMBER(14) NOT NULL
+);
+
+ALTER TABLE t_fdr_supermercado ADD CONSTRAINT pk_fdr_supermercado PRIMARY KEY ( cd_supermercado );
+
+ALTER TABLE t_fdr_supermercado ADD CONSTRAINT un_fdr_supermercado_email UNIQUE ( ds_email );
+
+ALTER TABLE t_fdr_supermercado ADD CONSTRAINT un_fdr_supermercado_cnpj UNIQUE ( nr_cnpj );
+
+ALTER TABLE t_fdr_carrinho
+    ADD CONSTRAINT fk_fdr_car_entidade FOREIGN KEY ( cd_instituicao )
+        REFERENCES t_fdr_entidade ( cd_instituicao );
+
+ALTER TABLE t_fdr_entidade
+    ADD CONSTRAINT fk_fdr_entidade_endereco FOREIGN KEY ( nr_cep )
+        REFERENCES t_fdr_endereco ( nr_cep );
+
+ALTER TABLE t_fdr_item_sm
+    ADD CONSTRAINT fk_fdr_item_car_carrinho FOREIGN KEY ( cd_carrinho )
+        REFERENCES t_fdr_carrinho ( cd_carrinho );
+
+ALTER TABLE t_fdr_item_sm
+    ADD CONSTRAINT fk_fdr_item_car_produtos FOREIGN KEY ( cd_produto )
+        REFERENCES t_fdr_produto ( cd_produto );
+
+ALTER TABLE t_fdr_prod_sm
+    ADD CONSTRAINT fk_fdr_prod_sm_produtos FOREIGN KEY ( cd_produto )
+        REFERENCES t_fdr_produto ( cd_produto );
+
+ALTER TABLE t_fdr_prod_sm
+    ADD CONSTRAINT fk_fdr_prod_sm_supermercado FOREIGN KEY ( cd_supermercado )
+        REFERENCES t_fdr_supermercado ( cd_supermercado );
+
+ALTER TABLE t_fdr_repre_ea
+    ADD CONSTRAINT fk_fdr_repre_ea_ent FOREIGN KEY ( cd_instituicao )
+        REFERENCES t_fdr_entidade ( cd_instituicao );
+
+ALTER TABLE t_fdr_repre_sm
+    ADD CONSTRAINT fk_fdr_repre_sm_sm FOREIGN KEY ( cd_supermercado )
+        REFERENCES t_fdr_supermercado ( cd_supermercado );
+
+ALTER TABLE t_fdr_supermercado
+    ADD CONSTRAINT fk_fdr_sm_endereco FOREIGN KEY ( nr_cep )
+        REFERENCES t_fdr_endereco ( nr_cep );
